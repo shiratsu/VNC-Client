@@ -23,10 +23,10 @@ class ViewController: UIViewController {
     let scrollViewSize = CGSize(width: 1680/3, height: 1050/2)
     
     private func addNotificationObservers() {
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: "actOnConnection", name: connectedNotificationKey, object: nil)
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: "actOnServerError", name: serverConnectionErrorNotificationKey, object: nil)
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: "actOnWrongPassword", name: wrongPasswordNotificationKey, object: nil)
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: "actOnPixelData:", name: pixelDataNotificationKey, object: nil)
+        NotificationCenter.default.addObserver(self, selector: Selector("actOnConnection"), name: NSNotification.Name(rawValue: connectedNotificationKey), object: nil)
+        NotificationCenter.default.addObserver(self, selector: Selector("actOnServerError"), name: NSNotification.Name(rawValue: serverConnectionErrorNotificationKey), object: nil)
+        NotificationCenter.default.addObserver(self, selector: Selector("actOnWrongPassword"), name: NSNotification.Name(rawValue: wrongPasswordNotificationKey), object: nil)
+        NotificationCenter.default.addObserver(self, selector: Selector("actOnPixelData:"), name: NSNotification.Name(rawValue: pixelDataNotificationKey), object: nil)
 
     }
     
@@ -34,28 +34,28 @@ class ViewController: UIViewController {
     
     @IBAction func connectToServer() {
         addNotificationObservers()
-        servCon.connect(hostField.text, password: passField.text)
+        servCon.connect(hostIP: hostField.text ?? "", password: passField.text ?? "")
         var size = scrollViewSize
         scrollView.contentSize = size
 
     }
     
     func actOnConnection() {
-        println("Connected!")
+        print("Connected!")
         
     }
     
     func actOnServerError() {
-        println("Server Error")
+        print("Server Error")
     }
     
     func actOnWrongPassword() {
-        println("Wrong Password")
+        print("Wrong Password")
     }
     
     func actOnPixelData(notification: NSNotification) {
         
-        println("Pixel data arriving!")
+        print("Pixel data arriving!")
         var dataMap: Dictionary<String,PixelRectangle> = notification.userInfo as! Dictionary<String,PixelRectangle>
         var pixelRect = dataMap["data"]
         

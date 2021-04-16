@@ -9,7 +9,7 @@
 import Foundation
 import CoreFoundation
 
-class ServerConnector: NSObject, NSStreamDelegate
+class ServerConnector: NSObject, StreamDelegate
 {
     
     enum state {
@@ -28,8 +28,8 @@ class ServerConnector: NSObject, NSStreamDelegate
     
     private var currentState = state.ProtocolVersion
     
-    var inputStream: NSInputStream?
-    var outputStream: NSOutputStream?
+    var inputStream: InputStream?
+    var outputStream: OutputStream?
 
     private let VNCport = 5900
     
@@ -54,17 +54,17 @@ class ServerConnector: NSObject, NSStreamDelegate
         outputStream = writeStream!.takeRetainedValue()
         
         if readStream == nil {
-            println("No Read")
+            print("No Read")
         }
         if writeStream == nil {
-            println("No Write")
+            print("No Write")
         }
         
         inputStream!.delegate = self
         outputStream!.delegate = self
         
-        inputStream!.scheduleInRunLoop(NSRunLoop.mainRunLoop(), forMode: NSDefaultRunLoopMode)
-        outputStream!.scheduleInRunLoop(NSRunLoop.mainRunLoop(), forMode: NSDefaultRunLoopMode)
+        inputStream!.schedule(in: RunLoop.main, forMode: RunLoopMode.defaultRunLoopMode)
+        outputStream!.schedule(in: RunLoop.main, forMode: RunLoopMode.defaultRunLoopMode)
         inputStream!.open()
         outputStream!.open()
         
@@ -73,8 +73,8 @@ class ServerConnector: NSObject, NSStreamDelegate
     
     private func decideProtocolVersion() {
         
-        var buffer = StreamReader.readAllFromServer(inputStream)
-        var output = NSString(bytes: &buffer, length: buffer.count, encoding: NSASCIIStringEncoding)
+        var buffer = StreamReader.readAllFromServer(inputStream: inputStream)
+        var output = NSString(bytes: &buffer, length: buffer.count, encoding: String.Encoding.ascii.rawValue)
         if (output != ""){
             NSLog("server said: %@", output!)
         }
@@ -88,16 +88,16 @@ class ServerConnector: NSObject, NSStreamDelegate
         fBP!.sendRequest()
     }
     
-    func stream(aStream: NSStream, handleEvent eventCode: NSStreamEvent) {
+    func stream(aStream: Stream, handleEvent eventCode: Stream.Event) {
         switch eventCode {
-        case NSStreamEvent.OpenCompleted:
-            NSLog("OpenCompleted")
+        case Stream.Event.openCompleted:
+            print("OpenCompleted")
             break
-        case NSStreamEvent.ErrorOccurred:
-            NSLog("ErrorOccurred")
-            NSNotificationCenter.defaultCenter().postNotificationName(serverConnectionErrorNotificationKey, object: self)
+        case Stream.Event.errorOccurred:
+            print("ErrorOccurred")
+            NotificationCenter.default.post(name: NSNotification.Name(rawValue: serverConnectionErrorNotificationKey), object: self)
             break
-        case NSStreamEvent.HasBytesAvailable:
+        case Stream.Event.hasBytesAvailable:
             NSLog("HasBytesAvailiable")
             switch currentState {
             case .ProtocolVersion:
@@ -109,7 +109,7 @@ class ServerConnector: NSObject, NSStreamDelegate
             case .TryingPassword:
                 currentState = state.ReceivingAuthenticationResponse
                 auther = Authenticator(inputStream: inputStream, outputStream: outputStream)
-                auther!.authenticate(password)
+                auther!.authenticate(password: password)
                 break
             case .ReceivingAuthenticationResponse:
                 if auther!.getAuthStatus() {
@@ -137,7 +137,8 @@ class ServerConnector: NSObject, NSStreamDelegate
             case .ReadingPixelData:
                 NSLog("ReadingPixelData")
                 if firstCon {
-                    NSTimer.scheduledTimerWithTimeInterval(0.02, target: self, selector: "sendRequest", userInfo: nil, repeats: true)
+                    // TODO: Selectorのところは後で今動く形式で修正する必要あり
+                    Timer.scheduledTimer(timeInterval: 0.02, target: self, selector: Selector("sendRequest"), userInfo: nil, repeats: true)
                     firstCon = false
                 }
                 var result = fBP!.getPixelData()

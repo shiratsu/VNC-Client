@@ -10,18 +10,18 @@ import Foundation
 
 class StreamReader
 {
-    static func readAllFromServer(inputStream: NSInputStream?) -> [UInt8] {
-        var buffer = [UInt8](count: 4096, repeatedValue: 0)
+    static func readAllFromServer(inputStream: InputStream?) -> [UInt8] {
+        var buffer = [UInt8](repeating: 0, count: 4096)
         //while (inputStream!.hasBytesAvailable){
-            var len = inputStream!.read(&buffer, maxLength: buffer.count)
+        _ = inputStream!.read(&buffer, maxLength: buffer.count)
         //}
         return buffer
     }
     
-    static func readAllFromServer(inputStream: NSInputStream?, maxlength: Int) -> [UInt8] {
-        var buffer = [UInt8](count: maxlength, repeatedValue: 0)
+    static func readAllFromServer(inputStream: InputStream?, maxlength: Int) -> [UInt8] {
+        var buffer = [UInt8](repeating: 0, count: maxlength)
        // while (inputStream!.hasBytesAvailable){
-            var len = inputStream!.read(&buffer, maxLength: buffer.count)
+        _ = inputStream!.read(&buffer, maxLength: buffer.count)
         //}
         
         return buffer
